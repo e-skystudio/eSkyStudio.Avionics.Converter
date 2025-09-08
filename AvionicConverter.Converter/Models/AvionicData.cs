@@ -1,4 +1,4 @@
-namespace AvionicConverter.Models;
+namespace AvionicConverter.Converter.Models;
 
 public class AvionicData
 {

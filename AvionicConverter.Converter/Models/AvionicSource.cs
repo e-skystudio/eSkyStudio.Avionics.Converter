@@ -1,4 +1,4 @@
-namespace AvionicConverter.Models;
+namespace AvionicConverter.Converter.Models;
 
 public record AvionicSource(ushort? bus = null, ushort? label = null)
 {

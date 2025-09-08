@@ -1,5 +1,4 @@
-using AvionicConverter.Converter.Helpers;
-using AvionicConverter.Models;
+using AvionicConverter.Converter.Models;
 
 namespace AvionicConverter.Converter.BinaryNumberRepresentation;
 
