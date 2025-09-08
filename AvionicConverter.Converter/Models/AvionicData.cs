@@ -21,4 +21,9 @@ public class AvionicData
     }
 
     private long _timestamp;
+
+    public override string ToString()
+    {
+        return $"data,{_timestamp},{Source.Bus},{Source.Label},{AvionicValue:X}";
+    }
 }
