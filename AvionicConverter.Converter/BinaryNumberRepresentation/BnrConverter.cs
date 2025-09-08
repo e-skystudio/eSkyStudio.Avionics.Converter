@@ -1,4 +1,5 @@
 using AvionicConverter.Converter.Helpers;
+using AvionicConverter.Models;
 
 namespace AvionicConverter.Converter.BinaryNumberRepresentation;
 
@@ -6,36 +7,47 @@ namespace AvionicConverter.Converter.BinaryNumberRepresentation;
 /// Class for converting Binary Number Representation values using a range or resolution.
 /// Call factory methods : BnrConverterFromRange or BnrConverterFromResolution to create Binary Number Representation
 /// </summary>
-public class BnrConverter : IBinaryNumberRepresentation
+public class BnrConverter : IBnrConverter
 {
     public static BnrConverter BnrConverterFromRange(double range, ushort dataBitLength, ushort offset, bool isSigned)
     {
         ulong maxValue = isSigned ? (1U << (dataBitLength - 1)) - 1U : (1u << dataBitLength) - 1u;
         double resolution = range / (double)maxValue;
-        return new BnrConverter(resolution, dataBitLength, offset);
+        return new BnrConverter(resolution, dataBitLength, offset)
+        {
+            IsSigned = isSigned,
+            MaxValue = maxValue,
+        };
     }
 
     public static BnrConverter BnrConverterFromResolution(double resoltion, ushort dataBitLength, ushort offset)
     {
-        return new BnrConverter(resoltion, dataBitLength, offset);
+        return new BnrConverter(resoltion, dataBitLength, offset)
+        {
+            MaxValue = (1u << dataBitLength) - 1u,
+        };
     }
 
     public double Resolution { get; set; }
     public ushort DataBitLength { get; set; }
     public ushort Offset { get; set; }
+    public bool IsSigned{ get; set; }
+    public ulong MaxValue { get; set; }
 
-    public double Decode(ulong avionicValue, out BnrStatusMatrix status)
+    public double Decode(AvionicData data, out BnrStatusMatrix status)
     {
-        ulong raw = avionicValue.GetBits(DataBitLength, Offset);
-        status = (BnrStatusMatrix)avionicValue.GetBits(2, 21);
+        ulong raw = data.AvionicValue.GetBits(DataBitLength, Offset);
+        status = (BnrStatusMatrix)data.AvionicValue.GetBits(2, 21);
         return raw * Resolution;
     }
 
-    public ulong Encode(double value, BnrStatusMatrix status)
+    public AvionicData Encode(double value, BnrStatusMatrix status, AvionicSource? source = null)
     {
         ulong raw = (ulong)(value / Resolution) << Offset;
-        raw |= (ulong)status << 21;
-        return raw;
+        raw |= (ulong)status << (DataBitLength + Offset + 1);
+        var res = new AvionicData() { AvionicValue = raw, TimeStamp = DateTime.UtcNow };
+        if (source is not null) res.Source = source;
+        return res;
     }
 
     private BnrConverter(double resoltion, ushort dataBitLength, ushort offset)
