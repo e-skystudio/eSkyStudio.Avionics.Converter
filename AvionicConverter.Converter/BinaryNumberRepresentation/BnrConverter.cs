@@ -12,10 +12,12 @@ public class BnrConverter : IBnrConverter
     {
         ulong maxValue = isSigned ? (1U << (dataBitLength - 1)) - 1U : (1u << dataBitLength) - 1u;
         double resolution = range / (double)maxValue;
+        
         return new BnrConverter(resolution, dataBitLength, offset)
         {
             IsSigned = isSigned,
             MaxValue = maxValue,
+            Range = range,
         };
     }
 
@@ -55,4 +57,6 @@ public class BnrConverter : IBnrConverter
         DataBitLength = dataBitLength;
         Offset = offset;
     }
+
+    public double? Range { get; init; }
 }

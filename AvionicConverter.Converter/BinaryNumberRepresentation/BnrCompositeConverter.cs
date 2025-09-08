@@ -10,7 +10,14 @@ public class BnrCompositeConverter : IBnrConverter
         OrderedSource[order] = source; 
         _converters.Add(source, converter);
         _values.Add(source, 0);
-        Resolution = _converters[OrderedSource.Last().Value].Resolution;
+        double? Range = _converters[OrderedSource.First().Value].Range;
+        if (Range is null) Resolution = _converters[OrderedSource.Last().Value].Resolution;
+        else
+        {
+            int bits = _converters.Sum(c => c.Value.DataBitLength);
+            ulong maxValue = (1UL << bits) -1UL;
+            Resolution = Range.Value / maxValue;
+        }
     }
 
 

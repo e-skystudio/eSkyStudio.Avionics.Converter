@@ -24,7 +24,7 @@ public class StapClient
         };
         _timer.Elapsed += SendDataCallback;
 
-        
+
         var latitudeConverter = new BnrCompositeConverter();
         latitudeConverter.AddConverter(new(4, 120), BnrConverter.BnrConverterFromRange(0.000172, 11, 9, false), 2);
         latitudeConverter.AddConverter(new(4, 110), BnrConverter.BnrConverterFromRange(180.0, 20, 0, false), 1);
@@ -34,13 +34,24 @@ public class StapClient
         var gsConverter = BnrConverter.BnrConverterFromResolution(0.125, 15, 5);
         var trackConverter = BnrConverter.BnrConverterFromResolution(0.0055, 15, 5);
 
-        RequestedData.Add(latitudeConverter.Encode(_latitude, BnrStatusMatrix.NormalOps, new(4, 110)));
-        RequestedData.Add(latitudeConverter.Encode(_latitude, BnrStatusMatrix.NormalOps, new(4, 120)));
-        RequestedData.Add(longitudeConverter.Encode(_longitude, BnrStatusMatrix.NormalOps, new(4, 111)));
-        RequestedData.Add(longitudeConverter.Encode(_longitude, BnrStatusMatrix.NormalOps, new(4, 121)));
-        RequestedData.Add(gsConverter.Encode(_groundSpeed, BnrStatusMatrix.NormalOps, new(4, 112)));
-        RequestedData.Add(trackConverter.Encode(_track, BnrStatusMatrix.NormalOps, new(4, 103)));
-        RequestedData.Add(trackConverter.Encode(_heading, BnrStatusMatrix.NormalOps, new(2, 314)));
+        Converters.Add(new(4, 110), latitudeConverter);
+        Converters.Add(new(4, 111), longitudeConverter);
+        Converters.Add(new(4, 120), latitudeConverter);
+        Converters.Add(new(4, 121), longitudeConverter);
+        Converters.Add(new(4, 112), gsConverter);
+        Converters.Add(new(4, 103), trackConverter);
+        Converters.Add(new(2, 314), trackConverter);
+
+        Values = new Dictionary<AvionicSource, double>
+        {
+            { new AvionicSource(4, 103), _track },
+            { new AvionicSource(4, 110), _latitude },
+            { new AvionicSource(4, 111), _longitude },
+            { new AvionicSource(4, 112), _groundSpeed },
+            { new AvionicSource(4, 120), _latitude },
+            { new AvionicSource(4, 121), _longitude },
+            { new AvionicSource(2, 314), _heading }
+        };
     }
 
     private byte[] Status(string[] ops)
@@ -50,8 +61,12 @@ public class StapClient
 
     private byte[] Add(string[] ops)
     {
+        AvionicSource source = new(ushort.Parse(ops[1]), ushort.Parse(ops[2]));
         Console.WriteLine($"Added {ops[1]} - {ops[2]}");
-        RegistererDataRequest(new(ushort.Parse(ops[1]), ushort.Parse(ops[2])));
+
+        RequestedParameters.Add(source);
+        if (!_timer.Enabled) _timer.Start();
+
         return Encoding.UTF8.GetBytes("ok\n");
     }
 
@@ -104,19 +119,25 @@ public class StapClient
     }
 
 
-    public void RegistererDataRequest(AvionicSource source)
+    public void UpdatePosition()
     {
-        RequestedParameters.Add(source);
-        if (!_timer.Enabled) _timer.Start();
+        _groundSpeed++;
+        _groundSpeed %= 4096;
+        _track++;
+        _track %= 360.0;
+        Values[new(4, 112)] = _groundSpeed;
+        Values[new(4, 103)] = _track;
+        Console.WriteLine($"Aircraft Position : {_latitude} - {_longitude} - Speed: {_groundSpeed} - Track :{_track}");
     }
 
     private void SendDataCallback(object? sender, ElapsedEventArgs e)
     {
-        foreach (var data in RequestedData)
+        UpdatePosition();
+        foreach (AvionicSource source in RequestedParameters)
         {
-            data.TimeStamp = DateTime.UtcNow;
-            networkStream.Write(Encoding.UTF8.GetBytes(data.ToString() + "\n"));
-            Console.WriteLine(data.ToString());
+            var res = Converters[source].Encode(Values[source], BnrStatusMatrix.NormalOps, source);
+            networkStream.Write(Encoding.UTF8.GetBytes(res.ToString() + "\n"));
+            Console.WriteLine(res.ToString());
         }
         Console.WriteLine("\n\n");
     }
@@ -125,10 +146,12 @@ public class StapClient
     public List<AvionicData> RequestedData { get; set; } = [];
     private readonly Timer _timer;
     public TcpClient Client { get; set; }
+    public Dictionary<AvionicSource, IBnrConverter> Converters { get; set; } = [];  
+    private double _latitude = 51.11861111;
+    private double _longitude = 4.84222222;
+    private double _groundSpeed = 100.0;
+    private double _track = 1.0;
+    private double _heading = 0.0;
 
-    private const double _latitude = 51.11861111;
-    private const double _longitude = 4.84222222;
-    private const double _groundSpeed = 100.0;
-    private const double _track = 0.0;
-    private const double _heading = 0.0;
+    private Dictionary<AvionicSource, double> Values = [];
 }
