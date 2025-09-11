@@ -8,14 +8,16 @@ CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 TcpServer server = new TcpServer();
 using var cts = new CancellationTokenSource();
 
-// Stop server on Ctrl+C
-// Console.CancelKeyPress += (s, e) =>
-// {
-//     e.Cancel = true;
-//     cts.Cancel();
-//     server.Stop();
-// };
+ //Stop server on Ctrl+C
+ Console.CancelKeyPress += (s, e) =>
+ {
+     e.Cancel = true;
+     cts.Cancel();
+     server.Stop();
+ };
 
-// await server.StartAsync(cts.Token);
-
-UdpSimClient.StartListener();
+var thread = new Thread(new ThreadStart(UdpSimClient.StartListener));
+thread.Start();
+await server.StartAsync(cts.Token);
+thread.Interrupt();
+thread.Join();
