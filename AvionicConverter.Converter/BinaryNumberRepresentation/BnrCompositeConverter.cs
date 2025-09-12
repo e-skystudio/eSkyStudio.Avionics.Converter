@@ -42,11 +42,6 @@ public class BnrCompositeConverter : IBnrConverter
             avionicValue |= 1UL << (converter.Offset + converter.DataBitLength);
         if (converter.DataBitLength < 20)
             avionicValue |= 1UL;
-        // if (source.Signed && value.Value < 0)
-        //     avionicValue |= 1UL << source.DataEndBit;
-
-        // if ((source.DataEndBit - source.DataStartBit) < 20)
-        //     avionicValue |= 1UL;
 
         avionicValue |= (ulong)status << (converter.Offset + converter.DataBitLength + 1);
 
@@ -73,7 +68,9 @@ public class BnrCompositeConverter : IBnrConverter
     }
 
     public SortedList<int, AvionicSource> OrderedSource { get; set; } = [];
-    public BnrConverter? GetConverter(AvionicSource source) => _converters[source];
+
+    public BnrConverter? GetConverter(AvionicSource source) => 
+        _converters.TryGetValue(source, out BnrConverter? converter) ? converter : null;
 
     private Dictionary<AvionicSource, BnrConverter> _converters = [];
     private Dictionary<AvionicSource, double> _values = [];
