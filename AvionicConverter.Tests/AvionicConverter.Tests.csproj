@@ -22,4 +22,10 @@
     <ProjectReference Include="..\AvionicConverter.Converter\AvionicConverter.Converter.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Resources\Converters.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
