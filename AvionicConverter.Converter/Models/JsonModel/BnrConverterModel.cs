@@ -41,8 +41,8 @@ public class BnrConverterModel : ConverterModel
 
     public BnrConverter ToBnrConverter()
     {
-        if (Range is not null) return BnrConverter.BnrConverterFromRange(Range.Value, DataBitLength, Offset, IsSigned);
-        if (Resolution is not null) return BnrConverter.BnrConverterFromResolution(Resolution.Value, DataBitLength, Offset);
+        if (Range is not null) return BnrConverter.CreateFromRange(Range.Value, DataBitLength, Offset, IsSigned);
+        if (Resolution is not null) return BnrConverter.CreateFromResolution(Resolution.Value, DataBitLength, Offset);
         throw new InvalidOperationException("Either Range or Resolution must be set.");
     }
 }

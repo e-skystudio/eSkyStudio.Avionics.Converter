@@ -8,7 +8,7 @@ namespace AvionicConverter.Converter.BinaryNumberRepresentation;
 /// </summary>
 public class BnrConverter : IBnrConverter
 {
-    public static BnrConverter BnrConverterFromRange(double range, ushort dataBitLength, ushort offset, bool isSigned)
+    public static BnrConverter CreateFromRange(double range, ushort dataBitLength, ushort offset, bool isSigned)
     {
         ulong maxValue = isSigned ? (1U << (dataBitLength - 1)) - 1U : (1u << dataBitLength) - 1u;
         double resolution = range / (double)maxValue;
@@ -21,9 +21,9 @@ public class BnrConverter : IBnrConverter
         };
     }
 
-    public static BnrConverter BnrConverterFromResolution(double resoltion, ushort dataBitLength, ushort offset)
+    public static BnrConverter CreateFromResolution(double resolution, ushort dataBitLength, ushort offset)
     {
-        return new BnrConverter(resoltion, dataBitLength, offset)
+        return new BnrConverter(resolution, dataBitLength, offset)
         {
             MaxValue = (1u << dataBitLength) - 1u,
         };
@@ -42,11 +42,18 @@ public class BnrConverter : IBnrConverter
         return raw * Resolution;
     }
 
+    public (double value, BnrStatusMatrix status) Decode(AvionicData data)
+    {
+        ulong raw = data.AvionicValue.GetBits(DataBitLength, Offset);
+        var status = (BnrStatusMatrix)data.AvionicValue.GetBits(2, 21);
+        return (raw * Resolution, status);
+    }
+
     public AvionicData Encode(double value, BnrStatusMatrix status, AvionicSource? source = null)
     {
         ulong raw = (ulong)(value / Resolution) << Offset;
         raw |= (ulong)status << (DataBitLength + Offset + 1);
-        var res = new AvionicData() { AvionicValue = raw, TimeStamp = DateTime.UtcNow };
+        var res = new AvionicData(raw) { TimeStamp = DateTime.UtcNow };
         if (source is not null) res.Source = source;
         return res;
     }

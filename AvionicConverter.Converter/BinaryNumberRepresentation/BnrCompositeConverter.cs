@@ -5,21 +5,33 @@ namespace AvionicConverter.Converter.BinaryNumberRepresentation;
 
 public class BnrCompositeConverter : IBnrConverter
 {
+    
+    public BnrCompositeConverter()
+    {}
+
+    public BnrCompositeConverter(params (AvionicSource, BnrConverter)[] converters)
+    {
+        int order = 0;
+        foreach (var (source, converter) in converters)
+        {
+            AddConverter(source, converter, order++);
+        }
+    }
     public void AddConverter(AvionicSource source, BnrConverter converter, int order)
     {
         OrderedSource[order] = source; 
         _converters.Add(source, converter);
         _values.Add(source, 0);
-        double? Range = _converters[OrderedSource.First().Value].Range;
-        if (Range is null) Resolution = _converters[OrderedSource.Last().Value].Resolution;
+        double? range = _converters[OrderedSource.First().Value].Range;
+        if (range is null) Resolution = _converters[OrderedSource.Last().Value].Resolution;
         else
         {
             int bits = _converters.Sum(c => c.Value.DataBitLength);
             ulong maxValue = (1UL << bits) -1UL;
-            Resolution = Range.Value / maxValue;
+            Resolution = range.Value / maxValue;
         }
     }
-
+    
 
     public double Decode(AvionicData avionicValue, out BnrStatusMatrix status)
     {

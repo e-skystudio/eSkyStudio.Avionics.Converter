@@ -2,8 +2,22 @@ namespace AvionicConverter.Converter.Models;
 
 public class AvionicData
 {
+    public AvionicData(ulong value)
+    {
+        AvionicValue = value;
+        TimeStamp = DateTime.UtcNow;
+        Source = new AvionicSource();
+    }
+
+    public AvionicData()
+    {
+        TimeStamp = DateTime.UtcNow;
+        Source = new AvionicSource();
+        AvionicValue = 0x00;
+    }
+    
     public ulong AvionicValue { get; set; }
-    public AvionicSource Source { get; set; } = new AvionicSource();
+    public AvionicSource Source { get; set; }
     public long TimeStampMs
     {
         get => _timestamp;
