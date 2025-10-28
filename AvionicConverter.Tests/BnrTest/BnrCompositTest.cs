@@ -36,6 +36,7 @@ public class BnrCompositeTest
         AvionicSource latitudeFineSource = new(4, 120);    
         var res = _latitudeConverter.Encode(VorLatitude, BnrStatusMatrix.NormalOps, latitudeFineSource);
         const ulong expected = 0x67E401;
+        Assert.Equal(expected, res.AvionicValue);     
     }
     
     [Fact]                                                                                              
@@ -52,6 +53,7 @@ public class BnrCompositeTest
     {                 
         AvionicSource longitudeFineSource = new(4, 121);
         var res = _longitudeConverter.Encode(VorLongitude, BnrStatusMatrix.NormalOps, longitudeFineSource);       
-        const ulong expected = 0x6FD201;                                                                
+        const ulong expected = 0x6FD201;   
+        Assert.Equal(expected, res.AvionicValue);     
     }                                                                                                   
 }
