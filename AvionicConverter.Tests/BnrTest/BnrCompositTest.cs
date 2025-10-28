@@ -5,8 +5,8 @@ namespace AvionicConverter.Tests.BnrTest;
 
 public class BnrCompositeTest
 {
-    private BnrCompositeConverter _latitudeConverter;
-    private BnrCompositeConverter _longitudeConverter;
+    private readonly BnrCompositeConverter _latitudeConverter;
+    private readonly BnrCompositeConverter _longitudeConverter;
     private const double VorLatitude = 51.11861111; //BUN (EB)  VOR LATITUDE
     private const double VorLongitude = 4.84222222; //BUN (EB) VOR LONGITUDE
     
