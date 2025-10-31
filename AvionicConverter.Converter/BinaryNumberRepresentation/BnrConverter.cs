@@ -58,12 +58,12 @@ public class BnrConverter : IBnrConverter
         return res;
     }
 
-    private BnrConverter(double resoltion, ushort dataBitLength, ushort offset)
+    private BnrConverter(double resolution, ushort dataBitLength, ushort offset)
     {
-        Resolution = resoltion;
+        Resolution = resolution;
         DataBitLength = dataBitLength;
         Offset = offset;
     }
 
-    public double? Range { get; init; }
+    public double? Range { get; set; }
 }
