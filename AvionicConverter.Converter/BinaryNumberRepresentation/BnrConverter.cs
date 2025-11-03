@@ -29,6 +29,11 @@ public class BnrConverter : IBnrConverter
         };
     }
 
+    public static BnrConverter CreateEmpty()
+    {
+        return new BnrConverter();
+    }
+
     public double Resolution { get; set; }
     public ushort DataBitLength { get; set; }
     public ushort Offset { get; set; }
@@ -63,6 +68,15 @@ public class BnrConverter : IBnrConverter
         Resolution = resolution;
         DataBitLength = dataBitLength;
         Offset = offset;
+    }
+
+    private BnrConverter()
+    {
+        Resolution = 1.0;
+        DataBitLength = 20;
+        Offset = 0;
+        IsSigned = false;
+        MaxValue = (1u << DataBitLength) - 1u;
     }
 
     public double? Range { get; set; }
